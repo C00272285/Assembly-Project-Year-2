@@ -36,7 +36,7 @@ PLAYER_WIDTH    EQU     8
 ENEMY_HEIGHT    EQU     8
 ENEMY_WIDTH     EQU     8
 
-GROUND_HEIGHT   EQU     5900 ; this make the yellow ground long, used to be an issue where it would disappear and then come back. having it at this value makes it so that it does not disappear.
+GROUND_HEIGHT   EQU     5900 
 GROUND_WIDTH    EQU     8
 
 ENEMY_HEIGHT_2  EQU     8
@@ -59,7 +59,7 @@ POINTS          EQU     1
 *-------------------------------
 *SETTING UP THE PLAYERS HEALTH
 *-------------------------------
-LIFE          EQU     3     ; does not work 
+LIFE          EQU     3
 
 *--------------------------------
 *KEYBOARD KEYS FOR GAME IN HEX
@@ -204,10 +204,10 @@ PROCESS_INPUT
     BEQ     EXIT                    ; Exit if Escape
     CMP.L   #SPACEBAR,  CURRENT_KEY ; Is Current Key Spacebar
     BEQ     JUMP                    ; Jump
-    CMP.B   #65,        CURRENT_KEY ; to check is the keycode 65 is being pressed
-    BEQ     MOV_RIGHT               ; if the key is pressed then go to MOV_RIGHT
-    CMP.B   #68,        CURRENT_KEY ;to check is the keycode 68 is being pressed
-    BEQ     MOVE_LEFT               ;if the key is pressed then go to MOV_LEFT
+    CMP.B   #68,        CURRENT_KEY
+    BEQ     MOV_RIGHT  
+    CMP.B   #65,        CURRENT_KEY
+    BEQ     MOVE_LEFT
     RTS                             ; Return to subroutine
 
 *--------------------------------
@@ -227,19 +227,19 @@ UPDATE
 
     ; MOVE ENEMY ONE
     CLR.L   D1                      ; Clear contents of D1 (XOR is faster)
-    MOVE.L  ENEMY_X,    D1          ; Move the Enemy X Position to D1
+    MOVE.L  ENEMY_X,    D1          ; Move the Enemy X Position to D0
     CMP.L   #1,        D1
     BLE     RESET_ENEMY_POSITION    ; Reset Enemy if off Screen
     BRA     MOVE_ENEMY              ; Move the Enemy
     RTS                             ; Return to subroutine 
     
     ; MOVE ENEMY TWO
-    CLR.L   D2                     ; Clear contents of D2 (XOR is faster)
-    MOVE.L  ENEMY_TWO_X,    D2          ; Move the Enemy X Position to D0
-    CMP.L   #01,        D2
-    BLE     RESET_ENEMY_TWO_POSITION    ; Reset Enemy if off Screen
-    BRA     MOVE_ENEMY_TWO              ; Move the Enemy
-    RTS                             ; Return to subroutine
+;    CLR.L   D2                      ; Clear contents of D1 (XOR is faster)
+;    MOVE.L  ENEMY_TWO_X,    D2          ; Move the Enemy X Position to D0
+;    CMP.L   #01,        D2
+;    BLE     RESET_ENEMY_TWO_POSITION    ; Reset Enemy if off Screen
+;    BRA     MOVE_ENEMY_TWO              ; Move the Enemy
+;    RTS                             ; Return to subroutine
     
     
 
@@ -250,9 +250,9 @@ MOVE_ENEMY
     SUB.L   #4,     ENEMY_X
     RTS
     
-MOVE_ENEMY_TWO
-    SUB.L   #4,     ENEMY_TWO_X
-    RTS
+;MOVE_ENEMY_TWO
+;    SUB.L   #01,     ENEMY_TWO_X
+;    RTS
     
 *--------------------------------
 *RESET THE ENEMY POSITION  
@@ -265,10 +265,10 @@ RESET_ENEMY_POSITION
     RTS
     
 RESET_ENEMY_TWO_POSITION
-    CLR.L   D1                      ; Clear contents of D1 (XOR is faster)
-    MOVE.W  SCREEN_W,   D1          ; Place Screen width in D1
-    MOVE.L  D1,         ENEMY_TWO_X     ; Enemy X Position
-    MOVE.W  SCREEN_W,   D2
+    CLR.L   D2                      ; Clear contents of D1 (XOR is faster)
+    MOVE.W  SCREEN_W,   D2          ; Place Screen width in D1
+    MOVE.L  D2,         ENEMY_TWO_X     ; Enemy X Position
+    MOVE.W  SCREEN_W,   D3
     RTS
 
 *--------------------------------
@@ -370,16 +370,16 @@ GROUND_LINE
     TRAP    #15                     ; Trap (Perform action)
 
     ; SETTING THE WIDTH AND HEIGHT OF THE LINE
-    MOVE.L  GROUND_X,        D1     ;X
-    ADD.L   #GROUND_WIDTH,   D2     ; Width
-    ADD.L   #GROUND_HEIGHT,  D3     ; Height
+    MOVE.L  GROUND_X,        D1  ;X
+    ADD.L   #GROUND_WIDTH,   D2  ; Width
+    ADD.L   #GROUND_HEIGHT,  D3  ; Height
     
     MOVE.W  SCREEN_H,   D0          ; Place Screen width in D1
     DIVU    #3,         D0          ; divide by 2 for center on Y Axis
     MOVE.L  D0,         GROUND_Y     ; Enemy Y Position
     
     ; Draw LINE
-    MOVE.B  #88,        D0           ; Draw LINE
+    MOVE.B  #88,        D0       ; Draw LINE
     TRAP    #15                     ; Trap (Perform action)
     RTS                             ; Return to subroutine
     
@@ -405,11 +405,11 @@ JUMP_DONE:
     RTS                             ; Return to subroutine
     
 MOV_RIGHT: 
-    ADD.L   #1, PLAYER_X            ;if the above statement is true then this is used
+    ADD.L   #1, PLAYER_X 
     RTS
     
 MOVE_LEFT:
-    ADD.L   #-1,PLAYER_X            ;if the above statement is true then this is used
+    ADD.L   #-1,PLAYER_X
     RTS
 
     
@@ -441,7 +441,7 @@ DRAW_PLAYER:
 *--------------------------------  
 *DRAW ENEMY
 *--------------------------------  
-DRAW_ENEMY:
+DRAW_ENEMY
     ; Set Pixel Colors
     MOVE.L  #RED,       D1          ; Set Background color
     MOVE.B  #80,        D0          ; Task for Background Color
@@ -461,8 +461,9 @@ DRAW_ENEMY:
     TRAP    #15                     ; Trap (Perform action)
     RTS                             ; Return to subroutine
     
-DRAW_ENEMY_TWO:
+DRAW_ENEMY_TWO
     ; Set Pixel Colors
+    CLR.L   D1
     MOVE.L  #PURPLE,      D1          ; Set Background color
     MOVE.B  #80,          D1          ; Task for Background Color
     TRAP    #15                     ; Trap (Perform action)
@@ -474,7 +475,8 @@ DRAW_ENEMY_TWO:
     ADD.L   #ENEMY_WIDTH_2,   D3      ; Width
     MOVE.L  ENEMY_TWO_Y,    D4 
     ADD.L   #ENEMY_HEIGHT_2,   D4      ; Height
-    
+
+
     ; Draw Enemy    
     MOVE.B  #87,        D0          ; Draw Enemy
     TRAP    #15                     ; Trap (Perform action)
@@ -588,10 +590,10 @@ EXIT_MSG        DC.B    'Exiting....', 0    ; Exit Message
 *--------------------------------  
 *COLOR
 *--------------------------------  
-GREEN       EQU     $00008000   ;this is the green colour code
-RED         EQU     $000000FF   ;This is the red colour code
-YELLOW      EQU     $0000FFFF   ; This is the yellow colour code
-PURPLE      EQU     $00800080   ; this is the purple colour code 
+GREEN       EQU     $00008000
+RED         EQU     $000000FF
+YELLOW      EQU     $0000FFFF
+PURPLE      EQU     $00800080
 
 *--------------------------------  
 *SET THE SCREEN SIZE
@@ -613,7 +615,7 @@ PLAYER_X        DS.L    01  ; Reserve Space for Player X Position
 PLAYER_Y        DS.L    01  ; Reserve Space for Player Y Position
 PLAYER_SCORE    DS.L    01  ; Reserve Space for Player Score
 
-GROUND_X        DS.L    01  
+GROUND_X        DS.L    01
 GROUND_Y        DS.L    01
 
 PLYR_VELOCITY   DS.L    01  ; Reserve Space for Player Velocity
@@ -622,8 +624,8 @@ PLYR_ON_GND     DS.L    01  ; Reserve Space for Player on Ground
 
 ENEMY_X         DS.L    01  ; Reserve Space for Enemy X Position
 ENEMY_Y         DS.L    01  ; Reserve Space for Enemy Y Position
-ENEMY_TWO_X     DS.L    01  ; Reserve Space for Enemy X Position
-ENEMY_TWO_Y     DS.L    01  ; Reserve Space for Enemy Y Position
+ENEMY_TWO_X     DS.L    01
+ENEMY_TWO_Y     DS.L    01
 
 
 
@@ -631,7 +633,6 @@ ENEMY_TWO_Y     DS.L    01  ; Reserve Space for Enemy Y Position
 *END
 *--------------------------------  
     END    START        ; last line of source
-
 
 
 
